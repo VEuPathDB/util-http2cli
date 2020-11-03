@@ -18,6 +18,7 @@ type (
 	DirCreateFn  func(string, os.FileMode) error
 	FileCreateFn func(string) (*os.File, error)
 	FileStatFn   func(string) (os.FileInfo, error)
+	ExecFn       func(*exec.Cmd, chan<- error)
 )
 
 func NewJob() *Job {
@@ -25,6 +26,7 @@ func NewJob() *Job {
 		MkDir:  os.MkdirAll,
 		MkFile: os.Create,
 		Stat:   os.Stat,
+		Exec:   execute,
 	}
 }
 
@@ -37,6 +39,7 @@ type Job struct {
 	MkDir  DirCreateFn
 	MkFile FileCreateFn
 	Stat   FileStatFn
+	Exec   ExecFn
 }
 
 // GetJobPath returns the path to the output directory for the current job.
@@ -98,6 +101,10 @@ func (j *Job) Run(pipe chan<- error) error {
 		return err
 	}
 
+	if err := j.CreateJobDir(); err != nil {
+		return err
+	}
+
 	sout, serr, err := j.CreateLogs()
 	if err != nil {
 		return err
@@ -111,6 +118,12 @@ func (j *Job) Run(pipe chan<- error) error {
 	cmd.Stdout = sout
 	cmd.Stderr = serr
 
+	j.Exec(cmd, pipe)
+
+	return nil
+}
+
+func execute(cmd *exec.Cmd, pipe chan<- error) {
 	go func() {
 		if err := cmd.Start(); err != nil {
 			pipe <- err
@@ -118,6 +131,4 @@ func (j *Job) Run(pipe chan<- error) error {
 
 		pipe <- cmd.Wait()
 	}()
-
-	return nil
 }

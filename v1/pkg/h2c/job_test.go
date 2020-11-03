@@ -3,6 +3,7 @@ package h2c_test
 import (
 	"errors"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
@@ -166,6 +167,90 @@ func TestJob_VerifyJobDir(t *testing.T) {
 
 				So(target.VerifyJobDir(), ShouldBeNil)
 			})
+		})
+	})
+}
+
+func TestJob_Run(t *testing.T) {
+	config := new(h2c.Config)
+	config.OutDir = "/out"
+	config.DbDir  = "/db"
+	config.Version = "test version"
+
+	jobID := "test id"
+
+	Convey("Job.Run", t, func() {
+		Convey("returns an error", func() {
+			Convey("when job output directory verification fails", func() {
+				target := h2c.NewJob()
+				target.Config = config
+				target.ID = jobID
+				target.Stat = func(string) (os.FileInfo, error) {
+					return nil, errors.New("test error 1")
+				}
+
+				So(target.Run(nil).Error(), ShouldEqual, "test error 1")
+			})
+
+			Convey("when job output directory creation fails", func() {
+				target := h2c.NewJob()
+				target.Config = config
+				target.ID = jobID
+				target.Stat = func(string) (os.FileInfo, error) { return nil, os.ErrNotExist }
+				target.MkDir = func(string, os.FileMode) error {
+					return errors.New("test error 2")
+				}
+
+				So(target.Run(nil).Error(), ShouldEqual, "test error 2")
+			})
+
+			Convey("when job log files creation fails", func() {
+				target := h2c.NewJob()
+				target.Config = config
+				target.ID = jobID
+				target.Stat = func(string) (os.FileInfo, error) { return nil, os.ErrNotExist }
+				target.MkDir = func(string, os.FileMode) error { return nil }
+				target.MkFile = func(string) (*os.File, error) {
+					return nil, errors.New("test error 3")
+				}
+
+				So(target.Run(nil).Error(), ShouldEqual, "test error 3")
+			})
+		})
+
+		Convey("should call job executor on success", func() {
+				testFile1 := &os.File{}
+				testFile2 := &os.File{}
+				calls := 0
+
+				target := h2c.NewJob()
+				target.Tool = "test tool"
+				target.Args = []string{"test1", "test2", "test3"}
+				target.Config = config
+				target.ID = jobID
+				target.Stat = func(string) (os.FileInfo, error) { return nil, os.ErrNotExist }
+				target.MkDir = func(string, os.FileMode) error { return nil }
+				target.MkFile = func(string) (out *os.File, err error) {
+					if calls == 0 {
+						out = testFile1
+					} else {
+						out = testFile2
+					}
+
+					calls++
+
+					return
+				}
+				target.Exec = func(cmd *exec.Cmd, c chan<- error) {
+					So(cmd, ShouldNotBeNil)
+					So(cmd.Args[0], ShouldEqual, target.Tool)
+					So(cmd.Args[1:], ShouldResemble, target.Args)
+					So(cmd.Stdout, ShouldPointTo, testFile1)
+					So(cmd.Stderr, ShouldPointTo, testFile2)
+				}
+
+				So(target.Run(nil), ShouldEqual, nil)
+				So(calls, ShouldEqual, 2)
 		})
 	})
 }
