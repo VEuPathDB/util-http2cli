@@ -17,8 +17,10 @@ func main() {
 	h2c.InitCLI(config)
 
 	r := mux.NewRouter()
-	r.Handle("/{tool}/{job-id}", h2c.NewJobController(config))
-	r.Handle("/", h2c.NewMetaController(config))
+	r.Handle("/{tool}/{job-id}", h2c.NewJobController(config)).
+		Methods(http.MethodPost)
+	r.Handle("/", h2c.NewMetaController(config)).
+		Methods(http.MethodGet)
 
 	sPort := strconv.FormatUint(uint64(config.ServerPort), 10)
 	log.Println("Starting server on port " + sPort)
