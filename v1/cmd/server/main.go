@@ -16,12 +16,11 @@ func main() {
 	config.Version = version
 	h2c.InitCLI(config)
 
-
-
 	r := mux.NewRouter()
 	r.Handle("/{tool}/{job-id}", h2c.NewJobController(config))
 	r.Handle("/", h2c.NewMetaController(config))
 
-	log.Println("Starting server")
-	log.Fatal(http.ListenAndServe("localhost:" + strconv.Itoa(int(config.ServerPort)), r))
+	sPort := strconv.FormatUint(uint64(config.ServerPort), 10)
+	log.Println("Starting server on port " + sPort)
+	log.Fatal(http.ListenAndServe("0.0.0.0:" + sPort, r))
 }
