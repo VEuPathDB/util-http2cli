@@ -3,6 +3,11 @@
 :source-language: sh-session
 :source-linenums-option: 1
 
+image:https://img.shields.io/github/v/release/VEuPathDB/util-http2cli[GitHub release (latest SemVer)]
+image:https://img.shields.io/github/go-mod/go-version/VEuPathDB/util-http2cli?label=go[GitHub go.mod Go version]
+image:https://github.com/VEuPathDB/util-http2cli/workflows/Build/badge.svg[Build]
+image:https://codecov.io/gh/VEuPathDB/util-http2cli/branch/main/graph/badge.svg?token=J4gqy0CBwb[title=codecov, link=https://codecov.io/gh/VEuPathDB/util-http2cli]
+
 A simple HTTP server allowing access to explicitly defined CLI commands on the
 host machine (or container).
 
