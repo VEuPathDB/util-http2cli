@@ -20,10 +20,10 @@ const (
 )
 
 var (
-	defTools  = []string{"blastn", "blastp", "blastx", "tblastn", "tblastx"}
-	defDbDir  = "/db"
-	defOutDir = "/out"
-	defPort   = uint16(80)
+	DefaultTools  = []string{"blastn", "blastp", "blastx", "tblastn", "tblastx"}
+	DefaultDbDir  = "/db"
+	DefaultOutDir = "/out"
+	DefaultPort   = uint16(80)
 )
 
 func InitCLI(config *Config) {
@@ -36,7 +36,7 @@ func InitCLI(config *Config) {
 				Bind(&config.Tools).
 				Require().
 				Name("cmd").
-				Default(defTools))).
+				Default(DefaultTools))).
 		Flag(cli.NewFlag().
 			Short('d').
 			Long("db-dir").
@@ -45,7 +45,7 @@ func InitCLI(config *Config) {
 				Bind(&config.DbDir).
 				Require().
 				Name("path").
-				Default(defDbDir))).
+				Default(DefaultDbDir))).
 		Flag(cli.NewFlag().
 			Short('o').
 			Long("out-dir").
@@ -54,7 +54,7 @@ func InitCLI(config *Config) {
 				Bind(&config.OutDir).
 				Require().
 				Name("path").
-				Default(defOutDir))).
+				Default(DefaultOutDir))).
 		Flag(cli.NewFlag().
 			Short('p').
 			Long("port").
@@ -63,6 +63,6 @@ func InitCLI(config *Config) {
 				Bind(&config.ServerPort).
 				Require().
 				Name("port").
-				Default(defPort))).
+				Default(DefaultPort))).
 		MustParse()
 }
