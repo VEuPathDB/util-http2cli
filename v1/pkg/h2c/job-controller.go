@@ -30,7 +30,6 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Path Variables
 	vars := mux.Vars(r)
-
 	tool := vars["tool"]
 	if !e.toolAllowed(tool) {
 		w.WriteHeader(http.StatusNotFound)
@@ -40,7 +39,7 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	args := make([]string, 0, 64)
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&args); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
 	}
