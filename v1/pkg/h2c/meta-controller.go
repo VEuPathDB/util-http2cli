@@ -21,7 +21,8 @@ type meta struct {
 func (m *meta) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	out := new(metaInfo)
 	out.Version = m.config.Version
-	out.Uptime  = time.Now().Sub(m.start)
+	out.Uptime = time.Now().Sub(m.start).String()
+	out.Tools = m.config.Tools
 
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
@@ -31,6 +32,7 @@ func (m *meta) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type metaInfo struct {
-	Version string        `json:"version"`
-	Uptime  time.Duration `json:"uptime"`
+	Version string   `json:"version"`
+	Uptime  string   `json:"uptime"`
+	Tools   []string `json:"tools"`
 }

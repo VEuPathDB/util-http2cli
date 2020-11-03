@@ -4,6 +4,7 @@ import cli "github.com/Foxcapades/Argonaut/v0"
 
 const (
 	descTools = "List of tools this service is allowed to call.\n\n" +
+		"This list may be specified by using this flag more than once.\n\n" +
 		"Defaults to [blastn, blastp, blastx, tblastn, tblastx]."
 	descDbDir = "Root directory this service will use as the base path when" +
 		" configuring a blast tool run.\n\n" +
@@ -15,12 +16,14 @@ const (
 		"This should match the volume mount point set when starting the docker" +
 		" container.\n\n" +
 		"Defaults to /out"
+	descPort = "Port the HTTP server should bind to."
 )
 
 var (
 	defTools  = []string{"blastn", "blastp", "blastx", "tblastn", "tblastx"}
 	defDbDir  = "/db"
 	defOutDir = "/out"
+	defPort   = uint16(80)
 )
 
 func InitCLI(config *Config) {
@@ -32,6 +35,7 @@ func InitCLI(config *Config) {
 			Arg(cli.NewArg().
 				Bind(&config.Tools).
 				Require().
+				Name("cmd").
 				Default(defTools))).
 		Flag(cli.NewFlag().
 			Short('d').
@@ -40,6 +44,7 @@ func InitCLI(config *Config) {
 			Arg(cli.NewArg().
 				Bind(&config.DbDir).
 				Require().
+				Name("path").
 				Default(defDbDir))).
 		Flag(cli.NewFlag().
 			Short('o').
@@ -48,6 +53,16 @@ func InitCLI(config *Config) {
 			Arg(cli.NewArg().
 				Bind(&config.OutDir).
 				Require().
+				Name("path").
 				Default(defOutDir))).
-		MustBuild()
+		Flag(cli.NewFlag().
+			Short('p').
+			Long("port").
+			Description(descPort).
+			Arg(cli.NewArg().
+				Bind(&config.ServerPort).
+				Require().
+				Name("port").
+				Default(defPort))).
+		MustParse()
 }

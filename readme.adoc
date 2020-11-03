@@ -1,0 +1,99 @@
+= HTTP 2 CLI
+:source-highlighter: highlightjs
+:source-language: sh-session
+:source-linenums-option: 1
+
+A simple HTTP server allowing access to explicitly defined CLI commands on the
+host machine (or container).
+
+This tool's default use case and default setup are targeted towards running
+a select set of tools in the `ncbi/blast` docker container.
+
+Job output is written to the host filesystem, and must be exposed through other
+means if outside access is required.  The intended use case is for consumer
+services to read from the job directory either via a local directory, or a
+mounted volume.
+
+== Usage
+
+.Help Output
+[source, sh-session]
+----
+$ ./http2cli -h
+Usage:
+  http2cli [OPTIONS]
+
+Options
+  -t <string> | --tools=<string>    List of tools this service is allowed to call.
+
+                                    Defaults to [blastn, blastp, blastx, tblastn, tblastx].
+  -d <string> | --db-dir=<string>   Root directory this service will use as the base path when
+                                    configuring a blast tool run.
+
+                                    This should match the volume mount point set when starting the
+                                    docker container.
+
+                                    Defaults to /db
+  -o <string> | --out-dir=<string>  Output directory this service will use as the base path when
+                                    configuring a blast tool run.
+
+                                    This should match the volume mount point set when starting the
+                                    docker container.
+
+                                    Defaults to /out
+
+
+Help & Info
+  -h | --help  Prints this help text
+----
+
+.Execution
+[source, sh-session]
+----
+$ ./http2cli -t my-cli-tool -p 8080
+2020/11/03 13:43:03 Starting server
+----
+
+== Endpoints
+
+`/`::
+  Returns basic information about the server, such as uptime and configured
+  tools.
+`/jobs/\{tool}/\{job-id}`::
+  `\{tool}`: The name of the CLI tool to call +
+  `\{job-id}`: A user provided job-id for this request.  This value will
+  determine the location of the job output on the host machine. +
++
+This endpoint attempts to execute the provided `\{tool}` on the host machine. +
+If starting the tool fails, this endpoint will immediately return a `500`
+error. +
++
+If the tool starts successfully, this endpoint will simply provide a heartbeat
+in the form of a `.` character for every 10 seconds the job is running. +
++
+If the job fails after starting, an error will be appended to the text output
+buffer, however this error is an internal server error and will not contain the
+stderr output of the command.  That output will be in the host machine's job
+directory.
+
+
+
+
+
+== License
+
+--
+Copyright 2020 VEuPathDB
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+--

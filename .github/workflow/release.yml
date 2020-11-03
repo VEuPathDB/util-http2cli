@@ -10,6 +10,9 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
+      - name: Get Release Version
+        id: version_num
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d/ -f3)
 
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
@@ -25,8 +28,53 @@ jobs:
       - name: Test
         run: go test -v ./...
 
-      - name: Release
+      - name: Build Release Binaries
         run: make release
 
+      - name: Create Draft Release
+        uses: actions/create-release@v1
+        id: draft
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version_num.outputs.VERSION }}
+          release_name: Version ${{ steps.version_num.outputs.VERSION }}
+          draft: true
+          prerelease: false
 
+      - name: Publish Linux Binary
+        uses: actions/upload-release-assets@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.draft.outputs.upload_url }}
+          asset_path: bin/http2cli.linux.${{ steps.version_num.outputs.VERSION }}.x64.tar.gz
+          asset_name: http2cli.linux.${{ steps.version_num.outputs.VERSION }}.x64.tar.gz
+          asset_content_type: application/gzip
 
+      - name: Publish Darwin Binary
+        uses: actions/upload-release-assets@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.draft.outputs.upload_url }}
+          asset_path: bin/http2cli.darwin.${{ steps.version_num.outputs.VERSION }}.x64.tar.gz
+          asset_name: http2cli.darwin.${{ steps.version_num.outputs.VERSION }}.x64.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Publish Windows Binary
+        uses: actions/upload-release-assets@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.draft.outputs.upload_url }}
+          asset_path: bin/http2cli.windows.${{ steps.version_num.outputs.VERSION }}.x64.zip
+          asset_name: http2cli.windows.${{ steps.version_num.outputs.VERSION }}.x64.zip
+          asset_content_type: application/zip
+
+      - name: Publish Release
+        uses: eregon/publish-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ steps.draft.outputs.id }}
