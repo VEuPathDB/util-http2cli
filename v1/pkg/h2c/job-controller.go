@@ -2,6 +2,7 @@ package h2c
 
 import (
 	"encoding/json"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 
@@ -32,6 +33,7 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	tool := vars["tool"]
 	if !e.toolAllowed(tool) {
+		logrus.Info("Call to disallowed tool %s by %s", tool, r.RemoteAddr)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -54,6 +56,8 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer close(done)
 
 	if err := job.Run(done); err != nil {
+		logrus.Error(err)
+		logrus.Warnf("Failed to run %s.", tool)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
@@ -65,6 +69,7 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if err == nil {
 				w.WriteHeader(200)
 			} else {
+				logrus.Infof("Job %s failed with %s", vars["job-id"], err.Error())
 				w.Write([]byte(err.Error()))
 				w.WriteHeader(500)
 			}

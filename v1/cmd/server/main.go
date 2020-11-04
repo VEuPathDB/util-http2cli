@@ -1,15 +1,25 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"github.com/veupathdb/http2cli/v1/pkg/h2c"
+	"github.com/x-cray/logrus-prefixed-formatter"
 )
 
 var version = "development-build"
+
+func init() {
+	format := new(prefixed.TextFormatter)
+	format.FullTimestamp = true
+	format.TimestampFormat = time.RFC3339Nano
+
+	logrus.SetFormatter(format)
+}
 
 func main() {
 	config := new(h2c.Config)
@@ -23,6 +33,6 @@ func main() {
 		Methods(http.MethodGet)
 
 	sPort := strconv.FormatUint(uint64(config.ServerPort), 10)
-	log.Println("Starting server on port " + sPort)
-	log.Fatal(http.ListenAndServe("0.0.0.0:" + sPort, r))
+	logrus.Info("Starting server on port " + sPort)
+	logrus.Fatal(http.ListenAndServe("0.0.0.0:" + sPort, r))
 }
