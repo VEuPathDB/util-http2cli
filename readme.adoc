@@ -82,11 +82,6 @@ If the tool starts successfully, this endpoint will return a `200`.  This does
 not indicate that the job itself completed successfully, this simply means there
 was no error with the initial CLI call.
 
-
-
-
-
-
 == License
 
 --
