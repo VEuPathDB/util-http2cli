@@ -29,27 +29,31 @@ Usage:
   http2cli [OPTIONS]
 
 Options
-  -t <string> | --tools=<string>    List of tools this service is allowed to call.
+  -t <cmd>  | --tools=<cmd>     List of tools this service is allowed to call.
 
-                                    Defaults to [blastn, blastp, blastx, tblastn, tblastx].
-  -d <string> | --db-dir=<string>   Root directory this service will use as the base path when
-                                    configuring a blast tool run.
+                                This list may be specified by using this flag more than once.
 
-                                    This should match the volume mount point set when starting the
-                                    docker container.
+                                Defaults to [blastn, blastp, blastx, tblastn, tblastx].
+  -d <path> | --db-dir=<path>   Root directory this service will use as the base path when
+                                configuring a blast tool run.
 
-                                    Defaults to /db
-  -o <string> | --out-dir=<string>  Output directory this service will use as the base path when
-                                    configuring a blast tool run.
+                                This should match the volume mount point set when starting the
+                                docker container.
 
-                                    This should match the volume mount point set when starting the
-                                    docker container.
+                                Defaults to /db
+  -o <path> | --out-dir=<path>  Output directory this service will use as the base path when
+                                configuring a blast tool run.
 
-                                    Defaults to /out
+                                This should match the volume mount point set when starting the
+                                docker container.
+
+                                Defaults to /out
+  -p <port> | --port=<port>     Port the HTTP server should bind to.
 
 
 Help & Info
   -h | --help  Prints this help text
+
 ----
 
 .Execution
