@@ -2,10 +2,11 @@ package h2c
 
 import (
 	"errors"
-	"github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -111,6 +112,10 @@ func (j *Job) Run() error {
 		logrus.Errorf("Failed to create log files for job %s", j.ID)
 		return err
 	}
+	defer func() {
+		_ = sout.Close()
+		_ = serr.Close()
+	}()
 
 	cmd := exec.Command(j.Tool, j.Args...)
 	cmd.Stdout = sout
@@ -122,24 +127,10 @@ func (j *Job) Run() error {
 }
 
 func execute(cmd *exec.Cmd) {
-	go func() {
-		defer func() {
-			_ = cmd.Stdout.(*os.File).Close()
-			_ = cmd.Stderr.(*os.File).Close()
-		}()
+	logrus.Debug("Executing command ", cmd)
 
-		logrus.Debug("Executing command ", cmd)
-		if err := cmd.Start(); err != nil {
-			logrus.Debug("Command start failed with ", err.Error())
-			_, _ = cmd.Stderr.Write([]byte(err.Error()))
-			return
-		}
-
-		logrus.Debug("Waiting for command to finish")
-
-		if err := cmd.Wait(); err != nil {
-			logrus.Debug("Command failed with ", err.Error())
-			_, _ = cmd.Stderr.Write([]byte(err.Error()))
-		}
-	}()
+	if err := cmd.Run(); err != nil {
+		logrus.Debug("Command run failed with ", err.Error())
+		_, _ = cmd.Stderr.Write([]byte(err.Error()))
+	}
 }

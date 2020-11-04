@@ -78,9 +78,9 @@ This endpoint attempts to execute the provided `\{tool}` on the host machine. +
 If starting the tool fails, this endpoint will immediately return a `500`
 error. +
 +
-If the tool starts successfully, this endpoint will return a `200`.  This does
-not indicate that the job itself completed successfully, this simply means there
-was no error with the initial CLI call.
+This endpoint waits for the job to complete (successfully or not) to send a
+response.  With long-running jobs this could potentially take a long time.
+Configure your HTTP client requests to account for this.
 
 == License
 

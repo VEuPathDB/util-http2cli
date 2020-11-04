@@ -3,13 +3,10 @@ package h2c
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"net/http"
-)
-
-const (
-	hb = ".\n"
 )
 
 func NewJobController(config *Config) http.Handler {
@@ -53,14 +50,14 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if err := job.Run(); err != nil {
 		logrus.Error(err)
-		logrus.Warnf("Failed to start job %s with tool %s.", job.ID, tool)
+		logrus.Warnf("Job %s with tool %s failed.", job.ID, tool)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		w.Write([]byte("Job failed: " + err.Error() + ".\n Error output will be in job directory."))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("Job \"%s\" started successfully.", job.ID)))
+	w.Write([]byte(fmt.Sprintf("Job \"%s\" completed successfully.", job.ID)))
 }
 
 func (e *endpoint) toolAllowed(tool string) bool {
