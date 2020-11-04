@@ -33,7 +33,7 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	tool := vars["tool"]
 	if !e.toolAllowed(tool) {
-		logrus.Info("Call to disallowed tool %s by %s", tool, r.RemoteAddr)
+		logrus.Infof("Call to disallowed tool %s by %s", tool, r.RemoteAddr)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
