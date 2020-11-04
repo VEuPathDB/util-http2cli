@@ -189,7 +189,7 @@ func TestJob_Run(t *testing.T) {
 					return nil, errors.New("test error 1")
 				}
 
-				So(target.Run(nil).Error(), ShouldEqual, "test error 1")
+				So(target.Run().Error(), ShouldEqual, "test error 1")
 			})
 
 			Convey("when job output directory creation fails", func() {
@@ -201,7 +201,7 @@ func TestJob_Run(t *testing.T) {
 					return errors.New("test error 2")
 				}
 
-				So(target.Run(nil).Error(), ShouldEqual, "test error 2")
+				So(target.Run().Error(), ShouldEqual, "test error 2")
 			})
 
 			Convey("when job log files creation fails", func() {
@@ -214,7 +214,7 @@ func TestJob_Run(t *testing.T) {
 					return nil, errors.New("test error 3")
 				}
 
-				So(target.Run(nil).Error(), ShouldEqual, "test error 3")
+				So(target.Run().Error(), ShouldEqual, "test error 3")
 			})
 		})
 
@@ -241,7 +241,7 @@ func TestJob_Run(t *testing.T) {
 
 					return
 				}
-				target.Exec = func(cmd *exec.Cmd, c chan<- error) {
+				target.Exec = func(cmd *exec.Cmd) {
 					So(cmd, ShouldNotBeNil)
 					So(cmd.Args[0], ShouldEqual, target.Tool)
 					So(cmd.Args[1:], ShouldResemble, target.Args)
@@ -249,7 +249,7 @@ func TestJob_Run(t *testing.T) {
 					So(cmd.Stderr, ShouldPointTo, testFile2)
 				}
 
-				So(target.Run(nil), ShouldEqual, nil)
+				So(target.Run(), ShouldEqual, nil)
 				So(calls, ShouldEqual, 2)
 		})
 	})

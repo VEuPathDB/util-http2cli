@@ -78,13 +78,10 @@ This endpoint attempts to execute the provided `\{tool}` on the host machine. +
 If starting the tool fails, this endpoint will immediately return a `500`
 error. +
 +
-If the tool starts successfully, this endpoint will simply provide a heartbeat
-in the form of a `.` character for every 10 seconds the job is running. +
-+
-If the job fails after starting, an error will be appended to the text output
-buffer, however this error is an internal server error and will not contain the
-stderr output of the command.  That output will be in the host machine's job
-directory.
+If the tool starts successfully, this endpoint will return a `200`.  This does
+not indicate that the job itself completed successfully, this simply means there
+was no error with the initial CLI call.
+
 
 
 

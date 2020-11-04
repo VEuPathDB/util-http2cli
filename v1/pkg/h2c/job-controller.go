@@ -2,11 +2,10 @@ package h2c
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"net/http"
-	"time"
-
-	"github.com/gorilla/mux"
 )
 
 const (
@@ -52,33 +51,16 @@ func (e *endpoint) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	job.Args = args
 	job.Config = e.config
 
-	done := make(chan error, 1)
-	defer close(done)
-
-	if err := job.Run(done); err != nil {
+	if err := job.Run(); err != nil {
 		logrus.Error(err)
-		logrus.Warnf("Failed to run %s.", tool)
+		logrus.Warnf("Failed to start job %s with tool %s.", job.ID, tool)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	for {
-		select {
-		case err := <-done:
-			if err == nil {
-				w.WriteHeader(200)
-			} else {
-				logrus.Infof("Job %s failed with %s", vars["job-id"], err.Error())
-				w.Write([]byte(err.Error()))
-				w.WriteHeader(500)
-			}
-			return
-		default:
-			time.Sleep(10 * time.Second)
-			w.Write([]byte(hb))
-		}
-	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("Job \"%s\" started successfully.", job.ID)))
 }
 
 func (e *endpoint) toolAllowed(tool string) bool {

@@ -18,6 +18,7 @@ func init() {
 	format.FullTimestamp = true
 	format.TimestampFormat = time.RFC3339Nano
 
+	logrus.SetLevel(logrus.DebugLevel)
 	logrus.SetFormatter(format)
 }
 
@@ -34,5 +35,5 @@ func main() {
 
 	sPort := strconv.FormatUint(uint64(config.ServerPort), 10)
 	logrus.Info("Starting server on port " + sPort)
-	logrus.Fatal(http.ListenAndServe("0.0.0.0:" + sPort, r))
+	logrus.Fatal(http.ListenAndServe("0.0.0.0:"+sPort, r))
 }

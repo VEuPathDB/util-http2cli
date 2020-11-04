@@ -2,6 +2,7 @@ package h2c
 
 import (
 	"errors"
+	"github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -18,7 +19,7 @@ type (
 	DirCreateFn  func(string, os.FileMode) error
 	FileCreateFn func(string) (*os.File, error)
 	FileStatFn   func(string) (os.FileInfo, error)
-	ExecFn       func(*exec.Cmd, chan<- error)
+	ExecFn       func(*exec.Cmd)
 )
 
 func NewJob() *Job {
@@ -79,7 +80,7 @@ func (j *Job) VerifyJobDir() error {
 	_, err := j.Stat(j.GetJobPath())
 
 	if err != nil {
-		if err == os.ErrNotExist {
+		if os.IsNotExist(err) {
 			return nil
 		}
 
@@ -96,7 +97,7 @@ func (j *Job) VerifyJobDir() error {
 //
 // If this function returns an error immediately on execution, that means the
 // job setup failed before the job could be started.
-func (j *Job) Run(pipe chan<- error) error {
+func (j *Job) Run() error {
 	if err := j.VerifyJobDir(); err != nil {
 		return err
 	}
@@ -107,28 +108,38 @@ func (j *Job) Run(pipe chan<- error) error {
 
 	sout, serr, err := j.CreateLogs()
 	if err != nil {
+		logrus.Errorf("Failed to create log files for job %s", j.ID)
 		return err
 	}
-	defer func() {
-		_ = sout.Close()
-		_ = serr.Close()
-	}()
 
 	cmd := exec.Command(j.Tool, j.Args...)
 	cmd.Stdout = sout
 	cmd.Stderr = serr
 
-	j.Exec(cmd, pipe)
+	j.Exec(cmd)
 
 	return nil
 }
 
-func execute(cmd *exec.Cmd, pipe chan<- error) {
+func execute(cmd *exec.Cmd) {
 	go func() {
+		defer func() {
+			_ = cmd.Stdout.(*os.File).Close()
+			_ = cmd.Stderr.(*os.File).Close()
+		}()
+
+		logrus.Debug("Executing command ", cmd)
 		if err := cmd.Start(); err != nil {
-			pipe <- err
+			logrus.Debug("Command start failed with ", err.Error())
+			_, _ = cmd.Stderr.Write([]byte(err.Error()))
+			return
 		}
 
-		pipe <- cmd.Wait()
+		logrus.Debug("Waiting for command to finish")
+
+		if err := cmd.Wait(); err != nil {
+			logrus.Debug("Command failed with ", err.Error())
+			_, _ = cmd.Stderr.Write([]byte(err.Error()))
+		}
 	}()
 }
