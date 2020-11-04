@@ -1,6 +1,12 @@
 package h2c
 
-import cli "github.com/Foxcapades/Argonaut/v0"
+import (
+	"fmt"
+	"os"
+
+	"github.com/Foxcapades/Argonaut/v0"
+	"github.com/Foxcapades/Argonaut/v0/pkg/argo"
+)
 
 const (
 	descTools = "List of tools this service is allowed to call.\n\n" +
@@ -17,6 +23,7 @@ const (
 		" container.\n\n" +
 		"Defaults to /out"
 	descPort = "Port the HTTP server should bind to."
+	descVers = "Prints the server binary version."
 )
 
 var (
@@ -64,5 +71,13 @@ func InitCLI(config *Config) {
 				Require().
 				Name("port").
 				Default(DefaultPort))).
+		Flag(cli.NewFlag().
+			Short('V').
+			Long("version").
+			Description(descVers).
+			OnHit(func(argo.Flag) {
+				fmt.Println(config.Version)
+				os.Exit(0)
+			})).
 		MustParse()
 }

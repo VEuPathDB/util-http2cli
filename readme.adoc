@@ -49,6 +49,7 @@ Options
 
                                 Defaults to /out
   -p <port> | --port=<port>     Port the HTTP server should bind to.
+  -V        | --version
 
 
 Help & Info
