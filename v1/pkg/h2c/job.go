@@ -1,7 +1,6 @@
 package h2c
 
 import (
-	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -75,20 +74,18 @@ func (j *Job) CreateLogs() (sout, serr *os.File, err error) {
 	return
 }
 
-// VerifyJobDir confirms that the job directory didn't already exist before this
-// run.
 func (j *Job) VerifyJobDir() error {
 	_, err := j.Stat(j.GetJobPath())
 
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil
+			return j.MkDir(j.GetJobPath(), 0775)
 		}
 
 		return err
 	}
 
-	return errors.New("a job with id " + j.ID + " already exists.")
+	return nil
 }
 
 // Run executes the configured job asynchronously.
@@ -100,10 +97,6 @@ func (j *Job) VerifyJobDir() error {
 // job setup failed before the job could be started.
 func (j *Job) Run() error {
 	if err := j.VerifyJobDir(); err != nil {
-		return err
-	}
-
-	if err := j.CreateJobDir(); err != nil {
 		return err
 	}
 
@@ -120,6 +113,7 @@ func (j *Job) Run() error {
 	cmd := exec.Command(j.Tool, j.Args...)
 	cmd.Stdout = sout
 	cmd.Stderr = serr
+	cmd.Dir = j.GetJobPath()
 
 	j.Exec(cmd)
 
