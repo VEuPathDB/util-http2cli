@@ -7,8 +7,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"github.com/veupathdb/http2cli/v1/pkg/h2c"
 	"github.com/x-cray/logrus-prefixed-formatter"
+
+	"github.com/veupathdb/http2cli/v1/pkg/h2c"
 )
 
 var version = "development-build"
